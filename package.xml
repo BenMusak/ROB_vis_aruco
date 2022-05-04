@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>robVis_pkg_git</name>
+  <version>0.0.0</version>
+  <description>Publishes Aruco transforms</description>
+  <maintainer email="bomh19@student.aau.dk">jetson</maintainer>
+  <license>Apache License 2.0</license>
+
+  <exec_depend>cv2</exec_depend>
+  <exec_depend>numpy</exec_depend>
+  <exec_depend>glob</exec_depend>
+  <exec_depend>geometry_msgs.msg</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>tf_transformations</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+
+  <test_depend>ament_copyright</test_depend>
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>
