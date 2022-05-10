@@ -1,5 +1,5 @@
 # ROB_vis_aruco
-Tracking of aruco markers
+Tracking of aruco markers using ROS 2 galactic and opencv contribution.
 
 1) Open a terminal
 
@@ -19,9 +19,7 @@ Tracking of aruco markers
     python3 robVis_pkg/robVis_node.py
     ```
     
-# Dependensies
-       Ros galactic
-       
+# Dependensies      
     sudo apt-get install ros-galactic-turtle-tf2-py ros-galactic-tf2-tools ros-galactic-tf-transformations
     pip3 install transforms3d
     pip3 install opencv-contrib-python
