@@ -1,5 +1,5 @@
 # ROB_vis_aruco
-Tracking of aruco markers using ROS 2 galactic and opencv contribution.
+Tracking of aruco markers using ROS 2 galactic and opencv contrib.
 
 1) Open a terminal
 
