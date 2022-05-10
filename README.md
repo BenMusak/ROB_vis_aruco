@@ -22,14 +22,12 @@ Tracking of aruco markers
 # Dependensies
        Ros galactic
        
-    ``` bash
     sudo apt-get install ros-galactic-turtle-tf2-py ros-galactic-tf2-tools ros-galactic-tf-transformations
     pip3 install transforms3d
     pip3 install opencv-contrib-python
     pip3 install glob
     pip3 install numpy
     pip3 install scipy
-    ```
     
 
 
