@@ -22,10 +22,6 @@ from rclpy.qos import qos_profile_sensor_data
 from tf2_ros.static_transform_broadcaster import StaticTransformBroadcaster
 
 
-
-#Token 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
-
-
 path = "cali.yml"
 images_gray = []
 mtx = []
