@@ -26,12 +26,18 @@ from tf2_ros.static_transform_broadcaster import StaticTransformBroadcaster
 #Token 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
 
 
-path = "cali.yml"
+path = "ROB_vis_aruco/cali.yml"
 images_gray = []
 mtx = []
 dist = []
 rvecs = []
 tvecs = []
+camera_pos = []
+camera_rot = []
+cali_camPos_amount = 0
+arucoIDCali = 2
+arucoTrackID = 1
+calibrate_camPos = True
 calibration_d = False
 hasCalibrated = False
 foundArucosMarkers = 0
@@ -44,9 +50,8 @@ objp[:,:2] = np.mgrid[0:9,0:6].T.reshape(-1,2)
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
-camera_pos = [0.96, 0.54, 2.16]
-camera_rot = [-3.14159265, 0, 3.14159265]
-arucoHeight = 0.1 # Given in meters
+#camera_pos_frame = [0.96, 0.54, 2.16]
+#camera_rot_frame = [-3.14159265, 0, 3.14159265]
 
 
 def findArucosMakers(img, makerSize=6, totalMarkers=250, draw=False):
@@ -152,7 +157,7 @@ class DynamicFrameBroadcaster(Node):
 
     def handle_rob_pose(self):
 
-        global rvecs, tvecs, foundArucosMarkers, arucoHeight
+        global rvecs, tvecs, foundArucosMarkers
 
 
         # Set rotation and transforms
@@ -217,11 +222,13 @@ class PosePublisher(Node):
         timer_period = 0.05
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.hasSetStartFrameOffset = False
-        self.offset = [0, 0, 0]
+        self.offsetPos = [0, 0, 0]
+        self.offsetRot = [0, 0, 0]
+        self.trackID = 0
 
     def timer_callback(self):
 
-        global rvecs, tvecs, foundArucosMarkers, camera_pos, camera_rot, arucoHeight
+        global rvecs, tvecs, foundArucosMarkers, foundArucosMarkers
 
         pose = PoseWithCovarianceStamped()
         pose.header.frame_id = 'odom'
@@ -229,17 +236,21 @@ class PosePublisher(Node):
 
         # Create an offset so that when the program starts, thats the zero point in space
         if not self.hasSetStartFrameOffset and foundArucosMarkers > 0:
-            self.offset = [tvecs[0][0][0], tvecs[0][0][1], tvecs[0][0][2]]
             self.hasSetStartFrameOffset = True
             print("Has set the offset!")
 
         try: 
-            tx = tvecs[0][0][0] - self.offset[0]
-            ty = tvecs[0][0][1] - self.offset[1]
-            tz = tvecs[0][0][2] - self.offset[2]
+            print("Offset: " + str(self.offsetPos))
+            print("Aruco robot pos: " + str(tvecs[self.trackID][0][0]) + ", " + str(tvecs[self.trackID][0][1]) + ", " + str(tvecs[self.trackID][0][2]))
+            tx = self.offsetPos[0] - tvecs[self.trackID][0][0]
+            ty = self.offsetPos[1] - tvecs[self.trackID][0][1]
+            tz = self.offsetPos[2] - tvecs[self.trackID][0][2]
+
+            print("Aruco robot relitive pos: " + str(tx) + ", " + str(ty) + ", " + str(tz))
 
             # Get the proper rotation. Converts to quaternion from rotation vectors.
-            r = R.from_rotvec(np.array([rvecs[0][0][2], rvecs[0][0][1], rvecs[0][0][0]]))
+            #r = R.from_rotvec(np.array([rvecs[self.trackID][0][2], rvecs[self.trackID][0][1], rvecs[self.trackID][0][0]]))
+            r = R.from_rotvec(np.array([rvecs[self.trackID][0][2] - self.offsetRot[0], rvecs[self.trackID][0][1] - self.offsetRot[1], rvecs[self.trackID][0][0] - self.offsetRot[2]]))
             p = R.as_euler(r, seq='xyz', degrees=True)
             r = R.from_euler(seq='zyx', angles=p, degrees=True)
             qua = R.as_quat(r)
@@ -290,17 +301,48 @@ class PosePublisher(Node):
         self.publisher_.publish(pose)
 
 
+def mean(a):
+    return sum(a) / len(a)
+
+
+def calibrateCamPos(id):
+    global rvecs, tvecs, calibrate_camPos, camera_pos, camera_rot, cali_camPos_amount, arucoIDCali, hasOffsetCali
+
+    c_camPos = [tvecs[id][0][0], tvecs[id][0][1], tvecs[id][0][2]]
+    c_camRot = [rvecs[id][0][0], rvecs[id][0][1], rvecs[id][0][2]]
+    
+    if cali_camPos_amount <= 20:
+        camera_pos.append(c_camPos)
+        camera_rot.append(c_camRot)
+        cali_camPos_amount = cali_camPos_amount + 1
+        print("Calibrating Camera Position...")
+    else:
+        print(camera_pos)
+        cam_pos_avgr = np.mean(camera_pos, axis=0)
+        cam_rot_avgr = np.mean(camera_rot, axis=0)
+        camera_pos.clear()
+        camera_rot.clear()
+        camera_pos = cam_pos_avgr
+        camera_rot = cam_rot_avgr
+        calibrate_camPos = False
+        print("Done calibrating position and orientation!")
+        print("Position camera: " + str(cam_pos_avgr))
+        print("Rotation camera: " + str(cam_rot_avgr))
+
 
 def main(args=None):
     
-    global rvecs, tvecs, foundArucosMarkers, calibration_d, hasCalibrated
+    global rvecs, tvecs, foundArucosMarkers, calibration_d, calibrate_camPos, hasCalibrated, arucoIDCali, hasOffsetCali
 
     # Init ros
     rclpy.init(args=args)
 
     # Start Camera
-    cap = cv2.VideoCapture(0) # Normal Camera
-    #cap2 = cv2.VideoCapture(2)
+    cap = cv2.VideoCapture(2) # Normal Camera
+
+    # Set Camera parameters to use max res of the cam
+    #cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)  # set new dimensionns to cam object (not cap)
+    #cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
     # Start node
 
@@ -342,7 +384,6 @@ def main(args=None):
                 cv2.destroyWindow("Image")
                 # Start the broadcaster
         else:
-
             if not hasCalibrated:
                 mtx, dist = load_coefficients()
                 # Make new Node object
@@ -355,19 +396,27 @@ def main(args=None):
             if foundArucosMarkers > 0:
                 aruco.drawDetectedMarkers(img, foundArucos[0], foundArucos[1])
                 counter = 0
-                rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(foundArucos[0], 0.173, mtx, dist) # Aruco markers length are given in meters
+                rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(foundArucos[0], 0.247, mtx, dist) # Aruco markers length are given in meters
 
                 for bbox, id in zip(foundArucos[0], foundArucos[1]):
                     aruco.drawAxis(img, mtx, dist, rvecs[counter], tvecs[counter], 0.1)
+
+                    if id == arucoTrackID:
+                        poseNode.trackID = counter
+                        poseNode.offsetPos = camera_pos
+                        poseNode.offsetRot = camera_rot
+                        rclpy.spin_once(poseNode)
+
+                    if calibrate_camPos and id == arucoIDCali:
+                        calibrateCamPos(counter)
+
                     counter += 1
 
                 rclpy.spin_once(node)
-                rclpy.spin_once(poseNode)
             else:
                 print("No Aruco markers found")
             
             cv2.imshow("Aruco Markers", img)
-            #cv2.imshow("Second Camera", img2)
             cv2.waitKey(1)
 
     rclpy.shutdown()
