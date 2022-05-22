@@ -249,8 +249,8 @@ class PosePublisher(Node):
             print("Aruco robot relitive pos: " + str(tx) + ", " + str(ty) + ", " + str(tz))
 
             # Get the proper rotation. Converts to quaternion from rotation vectors.
-            #r = R.from_rotvec(np.array([rvecs[self.trackID][0][2], rvecs[self.trackID][0][1], rvecs[self.trackID][0][0]]))
-            r = R.from_rotvec(np.array([rvecs[self.trackID][0][2] - self.offsetRot[0], rvecs[self.trackID][0][1] - self.offsetRot[1], rvecs[self.trackID][0][0] - self.offsetRot[2]]))
+            r = R.from_rotvec(np.array([rvecs[self.trackID][0][2], rvecs[self.trackID][0][1], rvecs[self.trackID][0][0]]))
+            #r = R.from_rotvec(np.array([rvecs[self.trackID][0][2] - self.offsetRot[0], rvecs[self.trackID][0][1] - self.offsetRot[1], rvecs[self.trackID][0][0] - self.offsetRot[2]]))
             p = R.as_euler(r, seq='xyz', degrees=True)
             r = R.from_euler(seq='zyx', angles=p, degrees=True)
             qua = R.as_quat(r)
@@ -260,8 +260,8 @@ class PosePublisher(Node):
             rz = qua[2]
             w = qua[3]
 
-            pose.pose.pose.position.x = tx
-            pose.pose.pose.position.y = -ty
+            pose.pose.pose.position.x = -tx
+            pose.pose.pose.position.y = ty
             pose.pose.pose.position.z = tz
 
             pose.pose.pose.orientation.x = rx
@@ -341,8 +341,8 @@ def main(args=None):
     cap = cv2.VideoCapture(2) # Normal Camera
 
     # Set Camera parameters to use max res of the cam
-    #cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)  # set new dimensionns to cam object (not cap)
-    #cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)  # set new dimensionns to cam object (not cap)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
     # Start node
 
@@ -355,7 +355,7 @@ def main(args=None):
         #success2, img2 = cap2.read()
         if calibration_d:
             img_g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            if len(images_gray) < 50:
+            if len(images_gray) < 2:
                 print("Waiting for input...")
                 cv2.imshow("Image", img)
                 if cv2.waitKey(33) == ord('a'):

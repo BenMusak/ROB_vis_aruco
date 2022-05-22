@@ -1,7 +1,9 @@
 # ROB_vis_aruco
 Tracking of aruco markers
 
-1) Open a terminal
+1) clone the reposetory
+
+2) Open a terminal
 
     Navigate to the PATH where the reposetory is:
 
