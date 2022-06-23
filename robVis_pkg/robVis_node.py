@@ -41,7 +41,7 @@ cali_camPos_amount = 0
 arucoIDCali = 2
 # Set the ID of the markers in the row that they need to be published. So if robot one has the Aruco ID of "3", 
 # then set the first ID to "3" in the row.
-arucoTrackIDs = [3, 4, 5, 8]
+arucoTrackIDs = [4, 5, 6, 7]
 calibrate_camPos = True
 calibration_d = False
 hasCalibrated = False
@@ -166,7 +166,6 @@ class DynamicFrameBroadcaster(Node):
 
 
         # Set rotation and transforms
-        # Aruco: tvecs[0][0][1] -> tvecs[ArucomarkerID][Cornor][Transform] maybe? 
         for i in range(foundArucosMarkers):
             
             t = TransformStamped()
@@ -226,7 +225,7 @@ class PosePublisher(Node):
         super().__init__('acuro_pos')
         self.publishers_ = [None] * len(arucoTrackIDs)
         for i in range(len(arucoTrackIDs)):
-            self.publishers_[i] = self.create_publisher(PoseWithCovarianceStamped, 'processrobot''/pose' , 10)
+            self.publishers_[i] = self.create_publisher(PoseWithCovarianceStamped, 'processRobot_' + str(i) + '/pose' , 10)
         timer_period = 0.05
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.hasSetStartFrameOffset = False
@@ -260,7 +259,6 @@ class PosePublisher(Node):
 
             # Get the proper rotation. Converts to quaternion from rotation vectors.
             r = R.from_rotvec(np.array([rvecs[self.trackIDLocation][0][2], rvecs[self.trackIDLocation][0][1], rvecs[self.trackIDLocation][0][0]]))
-            #r = R.from_rotvec(np.array([rvecs[self.trackID][0][2] - self.offsetRot[0], rvecs[self.trackID][0][1] - self.offsetRot[1], rvecs[self.trackID][0][0] - self.offsetRot[2]]))
             p = R.as_euler(r, seq='xyz', degrees=True)
             r = R.from_euler(seq='zyx', angles=p, degrees=True)
             qua = R.as_quat(r)
@@ -355,9 +353,7 @@ def main(args=None):
     # Set Camera parameters to use max res of the cam
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)  # set new dimensionns to cam object (not cap)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-
-    # Start node
-
+    
     # publish camera position and orientation, only do this once when a new RVIZ is started. Just a quick fix for now
     #node_camPublish = StaticFramePublisher()
     #rclpy.spin_once(node_camPublish)
