@@ -39,7 +39,9 @@ camera_pos = []
 camera_rot = []
 cali_camPos_amount = 0
 arucoIDCali = 2
-arucoTrackID = 1
+# Set the ID of the markers in the row that they need to be published. So if robot one has the Aruco ID of "3", 
+# then set the first ID to "3" in the row.
+arucoTrackIDs = [3, 4, 5, 8]
 calibrate_camPos = True
 calibration_d = False
 hasCalibrated = False
@@ -220,18 +222,22 @@ class PosePublisher(Node):
     # https://blog.hadabot.com/ros2-navigation-tf2-tutorial-using-turtlesim.html
 
     def __init__(self):
+        global arucoTrackIDs
         super().__init__('acuro_pos')
-        self.publisher_ = self.create_publisher(PoseWithCovarianceStamped, 'pose', 10)
+        self.publishers_ = [None] * len(arucoTrackIDs)
+        for i in range(len(arucoTrackIDs)):
+            self.publishers_[i] = self.create_publisher(PoseWithCovarianceStamped, 'processrobot''/pose' , 10)
         timer_period = 0.05
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.hasSetStartFrameOffset = False
         self.offsetPos = [0, 0, 0]
         self.offsetRot = [0, 0, 0]
-        self.trackID = 0
+        self.trackID = None
+        self.trackIDLocation = None
 
     def timer_callback(self):
 
-        global rvecs, tvecs, foundArucosMarkers, foundArucosMarkers
+        global rvecs, tvecs, foundArucosMarkers, arucoTrackIDs
 
         pose = PoseWithCovarianceStamped()
         pose.header.frame_id = 'odom'
@@ -244,15 +250,16 @@ class PosePublisher(Node):
 
         try: 
             print("Offset: " + str(self.offsetPos))
-            print("Aruco robot pos: " + str(tvecs[self.trackID][0][0]) + ", " + str(tvecs[self.trackID][0][1]) + ", " + str(tvecs[self.trackID][0][2]))
-            tx = self.offsetPos[0] - tvecs[self.trackID][0][0]
-            ty = self.offsetPos[1] - tvecs[self.trackID][0][1]
-            tz = self.offsetPos[2] - tvecs[self.trackID][0][2]
+            print("Tracking ID: " + str(self.trackIDLocation))
+            print("Aruco robot pos: " + str(tvecs[self.trackIDLocation][0][0]) + ", " + str(tvecs[self.trackIDLocation][0][1]) + ", " + str(tvecs[self.trackIDLocation][0][2]))
+            tx = self.offsetPos[0] - tvecs[self.trackIDLocation][0][0]
+            ty = self.offsetPos[1] - tvecs[self.trackIDLocation][0][1]
+            tz = self.offsetPos[2] - tvecs[self.trackIDLocation][0][2]
 
             print("Aruco robot relitive pos: " + str(tx) + ", " + str(ty) + ", " + str(tz))
 
             # Get the proper rotation. Converts to quaternion from rotation vectors.
-            r = R.from_rotvec(np.array([rvecs[self.trackID][0][2], rvecs[self.trackID][0][1], rvecs[self.trackID][0][0]]))
+            r = R.from_rotvec(np.array([rvecs[self.trackIDLocation][0][2], rvecs[self.trackIDLocation][0][1], rvecs[self.trackIDLocation][0][0]]))
             #r = R.from_rotvec(np.array([rvecs[self.trackID][0][2] - self.offsetRot[0], rvecs[self.trackID][0][1] - self.offsetRot[1], rvecs[self.trackID][0][0] - self.offsetRot[2]]))
             p = R.as_euler(r, seq='xyz', degrees=True)
             r = R.from_euler(seq='zyx', angles=p, degrees=True)
@@ -301,7 +308,9 @@ class PosePublisher(Node):
             print("Something went wrong with the pose!")
             print(e)
 
-        self.publisher_.publish(pose)
+        for i in range(len(arucoTrackIDs)):
+            if arucoTrackIDs[i] == self.trackID:
+                self.publishers_[i].publish(pose)
 
 
 def mean(a):
@@ -309,7 +318,7 @@ def mean(a):
 
 
 def calibrateCamPos(id):
-    global rvecs, tvecs, calibrate_camPos, camera_pos, camera_rot, cali_camPos_amount, arucoIDCali, hasOffsetCali
+    global rvecs, tvecs, calibrate_camPos, camera_pos, camera_rot, cali_camPos_amount, arucoIDCali
 
     c_camPos = [tvecs[id][0][0], tvecs[id][0][1], tvecs[id][0][2]]
     c_camRot = [rvecs[id][0][0], rvecs[id][0][1], rvecs[id][0][2]]
@@ -341,7 +350,7 @@ def main(args=None):
     rclpy.init(args=args)
 
     # Start Camera
-    cap = cv2.VideoCapture(2) # Normal Camera
+    cap = cv2.VideoCapture(0) # Normal Camera
 
     # Set Camera parameters to use max res of the cam
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)  # set new dimensionns to cam object (not cap)
@@ -404,11 +413,13 @@ def main(args=None):
                 for bbox, id in zip(foundArucos[0], foundArucos[1]):
                     aruco.drawAxis(img, mtx, dist, rvecs[counter], tvecs[counter], 0.1)
 
-                    if id == arucoTrackID:
-                        poseNode.trackID = counter
-                        poseNode.offsetPos = camera_pos
-                        poseNode.offsetRot = camera_rot
-                        rclpy.spin_once(poseNode)
+                    for i in range(len(arucoTrackIDs)):
+                        if id == arucoTrackIDs[i]:
+                            poseNode.trackIDLocation = counter
+                            poseNode.trackID = id
+                            poseNode.offsetPos = camera_pos
+                            poseNode.offsetRot = camera_rot
+                            rclpy.spin_once(poseNode)
 
                     if calibrate_camPos and id == arucoIDCali:
                         calibrateCamPos(counter)
