@@ -22,11 +22,6 @@ from rclpy.qos import qos_profile_sensor_data
 from tf2_ros.static_transform_broadcaster import StaticTransformBroadcaster
 import os
 
-
-#Token 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
-
-
-
 path = os.path.abspath("cali.yml")
 print(path)
 
@@ -342,7 +337,7 @@ def calibrateCamPos(id):
 
 def main(args=None):
     
-    global rvecs, tvecs, foundArucosMarkers, calibration_d, calibrate_camPos, hasCalibrated, arucoIDCali, hasOffsetCali
+    global rvecs, tvecs, foundArucosMarkers, calibration_d, calibrate_camPos, hasCalibrated, arucoIDCali
 
     # Init ros
     rclpy.init(args=args)
@@ -353,7 +348,7 @@ def main(args=None):
     # Set Camera parameters to use max res of the cam
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)  # set new dimensionns to cam object (not cap)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-    
+
     # publish camera position and orientation, only do this once when a new RVIZ is started. Just a quick fix for now
     #node_camPublish = StaticFramePublisher()
     #rclpy.spin_once(node_camPublish)
@@ -390,7 +385,6 @@ def main(args=None):
                 save_coefficients(mtx, dist)
                 print("Done calibrating!")
                 cv2.destroyWindow("Image")
-                # Start the broadcaster
         else:
             if not hasCalibrated:
                 mtx, dist = load_coefficients()
