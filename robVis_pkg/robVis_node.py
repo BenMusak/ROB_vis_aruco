@@ -20,13 +20,16 @@ from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from rclpy.qos import qos_profile_sensor_data
 from tf2_ros.static_transform_broadcaster import StaticTransformBroadcaster
-
+import os
 
 
 #Token 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
 
 
-path = "ROB_vis_aruco/cali.yml"
+
+path = os.path.abspath("cali.yml")
+print(path)
+
 images_gray = []
 mtx = []
 dist = []
@@ -356,7 +359,7 @@ def main(args=None):
         if calibration_d:
             img_g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             if len(images_gray) < 2:
-                print("Waiting for input...")
+                print("Waiting for input... Hold calibration board in front of camera in various positions and press a-key")
                 cv2.imshow("Image", img)
                 if cv2.waitKey(33) == ord('a'):
                     images_gray.append(img_g)
