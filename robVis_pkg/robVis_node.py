@@ -36,7 +36,7 @@ cali_camPos_amount = 0
 arucoIDCali = 2
 # Set the ID of the markers in the row that they need to be published. So if robot one has the Aruco ID of "3", 
 # then set the first ID to "3" in the row.
-arucoTrackIDs = [4, 5, 6, 7]
+arucoTrackIDs = [4, 6, 7, 5]
 calibrate_camPos = True
 calibration_d = False
 hasCalibrated = False
@@ -398,7 +398,7 @@ def main(args=None):
             if foundArucosMarkers > 0:
                 aruco.drawDetectedMarkers(img, foundArucos[0], foundArucos[1])
                 counter = 0
-                rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(foundArucos[0], 0.247, mtx, dist) # Aruco markers length are given in meters
+                rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(foundArucos[0], 0.288, mtx, dist) # Aruco markers length are given in meters
 
                 for bbox, id in zip(foundArucos[0], foundArucos[1]):
                     aruco.drawAxis(img, mtx, dist, rvecs[counter], tvecs[counter], 0.1)
