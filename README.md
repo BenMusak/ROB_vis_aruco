@@ -1,7 +1,11 @@
 # ROB_vis_aruco
 Tracking of aruco markers using ROS 2 galactic and opencv contrib.
 
-1) Open a terminal
+1) Check if the current default Camera on your PC or laptop is set as the one you want to use for tracking. 
+
+    If it is not, either change the part in the code that says "cap = cv2.VideoCapture(0)" to "cap = cv2.VideoCapture(n)" where 'n' is any real number that represents which camera to pull images from.
+
+2) Open a terminal
 
     Navigate to the PATH where the reposetory is:
 
