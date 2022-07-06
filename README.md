@@ -68,6 +68,7 @@ Tracking of aruco markers
 3. Start tracking mode
 
     - a)
+
         Go into the file "robVis_node.py" and change "`calibration_d`" to `FALSE`.
 
         The script will now use the newly created calibration file to track ArUco markers with. The calibration is only neccesary to perform once, or when a new camera is used. A window showing the tracking will appear if everything is working
