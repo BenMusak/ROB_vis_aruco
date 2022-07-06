@@ -40,36 +40,55 @@ Tracking of aruco markers
 
 2. Start calibration mode
 
-    a)
+    - a)
 
-    Go into the file "robVis_node.py" and change "`calibration_d`" to `TRUE`
+        Go into the file "robVis_node.py" and change "`calibration_d`" to `TRUE`
 
-    b)
+    - b)
 
-    Open a new terminal
+        Open a new terminal
 
-    Navigate to the **PATH** where the reposetory is:
+        Navigate to the **PATH** where the reposetory is:
 
-    ``` bash
-    cd PATH/
-    ```
+        ``` bash
+        cd PATH/
+        ```
 
-    c)
+    - c)
 
-    run the python script
+        run the python script
 
-    ``` bash
-    python3 robVis_pkg/robVis_node.py
-    ```
+        ``` bash
+        python3 robVis_pkg/robVis_node.py
+        ```
 
-    follow instructions
-    Use a calibration board (6*9)
+        follow instructions
+        Use a calibration board (6*9)
 
 3. Start tracking mode
 
-    Go into the file "robVis_node.py" and change "`calibration_d`" to `FALSE`.
+    - a)
+        Go into the file "robVis_node.py" and change "`calibration_d`" to `FALSE`.
 
-    The script will now use the newly created calibration file to track ArUco markers with. The calibration is only neccesary to perform once, or when a new camera is used. A window showing the tracking will appear if everything is working
+        The script will now use the newly created calibration file to track ArUco markers with. The calibration is only neccesary to perform once, or when a new camera is used. A window showing the tracking will appear if everything is working
+
+    - b)
+
+        Open a new terminal
+
+        Navigate to the **PATH** where the reposetory is:
+
+        ``` bash
+        cd PATH/
+        ```
+
+    - c)
+
+        run the python script
+
+        ``` bash
+        python3 robVis_pkg/robVis_node.py
+        ```
 
 ## Error Handling
 
